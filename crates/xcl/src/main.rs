@@ -13,6 +13,12 @@ unsafe extern "system" fn xcl_tls_callback(_h: *mut c_void, reason: u32, _r: *mu
     }
 }
 
+/// The runtime's allocations go to mimalloc (per-thread heaps) instead of the process heap,
+/// whose one lock its threads took for every allocation and free. Under Wine a retail title's
+/// render and submit threads waited there while DirectStorage's workers allocated.
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 #[used]
 #[link_section = ".CRT$XLY"]
 static XCL_TLS_CALLBACK: unsafe extern "system" fn(*mut c_void, u32, *mut c_void) = xcl_tls_callback;
